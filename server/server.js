@@ -33,9 +33,61 @@ let storage = multer.diskStorage({
 let upload = multer({storage: storage});
 
 
+//app.use(schedule.schedule());  //use shedule
+var nodemailer = require('nodemailer');
 
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'talents3Web@gmail.com',
+    pass: 'talents3Web@'
+  }
+});
+var schedule = require('node-schedule');
+var y = { ccName: '🐷', receiverName: '磨洋', bccAddress: 'zz1558@nyu.edu', receiverAddress: 'hh1677@nyu.edu'};
+var j = schedule.scheduleJob('0 * * * * *', function(x){
+    var mailOptions = {
+                    from: 'talents3Web@gmail.com',
+                    to: x.receiverAddress, 
+                    bcc: x.bccAddress,
+                    subject: 'Testing email',
+                    text: 'Dear ' + x.receiverName + ',',
+                    html: {path: 'http://localhost:3000/getViews/8'}                 
+                     };
+    transporter.sendMail(mailOptions, function(error, info){
+                    if (error) {
+                      console.log(error);
+                    } else {
+                      console.log('Email sent: ' + info.response);
+                    }
+                });
+ 
+  
+}.bind(null, y));
+j.cancel();
+
+
+app.set("view engine", "ejs");
+
+app.get('/getViews/:id', function(req,res){
+   const id = +req.params.id;
+   console.log("hit it",id);
+   User.findOne({id: id}).populate('educations').populate('experiences').exec((err, finduser) => {
+       if(err){
+       	console.log(err);
+       }
+       else {
+       	res.render("test", {user: finduser});
+	   }
+   });
+   
+
+});
 
 // end here
+
+
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true})); 
@@ -132,4 +184,4 @@ app.use(function(req, res, next) {
 // });
 
 //launch application,listen on port3000
-app.listen(80, () => console.log('Example app listening !'));
+app.listen(3000, () => console.log('Example app listening !'));
